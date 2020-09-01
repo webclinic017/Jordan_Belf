@@ -1,0 +1,9 @@
+READ ME 
+pip dependancies
+yfinance
+statistics
+pandas
+numpy
+IbPy2
+backtrader
+matplotlib (make sure this is version 3.2.2)
