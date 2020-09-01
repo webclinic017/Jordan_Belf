@@ -11,3 +11,10 @@ numpy - Used for calculations
 statistics - Used for calculations 
 pandas - Dataframe structure for backtesting 
 yfinance - Dataframe data collection when backtesting
+
+
+install packages using the requirement.txt 
+$pip install -r requirements.txt
+Make sure you are in the right directory as well, if you saved the requirements.txt to a folder like downloads
+Then cd to downloads before running this code through this command
+$cd Downloads
