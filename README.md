@@ -20,4 +20,3 @@ Then cd to downloads before running this code through this command
 $cd Downloads
 
 ***
-RDP: 71.68.132.99
