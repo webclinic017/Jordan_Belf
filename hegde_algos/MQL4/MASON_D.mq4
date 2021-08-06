@@ -13,8 +13,15 @@ input double Lots = 0.1;
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
 
+   //FLAGS
+   bool maBool, macdBool, rsiBool;
+   // determine other global variables
+   
 int OnInit(){
-   // TODO
+   //init FLAGS
+   maBool = macdBool = rsiBool = False;
+   // TODO 
+   // what else needs to be init and what other global variables?
    return(INIT_SUCCEEDED);
   }
 //+------------------------------------------------------------------+
@@ -28,10 +35,6 @@ void OnDeinit(const int reason){
 //+------------------------------------------------------------------+
 void OnTick(){
    
-   //FLAGS
-   bool maBool = False;
-   bool macdBool = False;
-   bool rsiBool = False;
 
    int ticket = 0;
   //Moving Average (current chart symbol, current chart timeframe, 9 period, no shift, simple, close, most recent) 
