@@ -14,9 +14,9 @@ input double Lots          =0.1;
 //+------------------------------------------------------------------+
 
       //FLAGS
-bool MATru = False;
-bool MACDTru = False;
-bool RSITru = False;
+bool maBool = False;
+bool macdBool = False;
+bool rsiBool = False;
 
 int OnInit()
   {
@@ -38,8 +38,9 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTick()
   {
-   int ticket;
+   int ticket = 0;
   //Moving Average (current chart symbol, current chart timeframe, 9 period, no shift, simple, close, most recent) 
+  
    double movingAv = iMA(NULL,0,9,0,0,0,0);
   //MACD (Current Symbol, current timeframe, 12 fast, 26 slow
    double MACDCurrent = iMACD(NULL, 0,12,26,9,PRICE_CLOSE,MODE_MAIN,0);
@@ -61,16 +62,16 @@ void OnTick()
       //BUY CONDITIONS
       //first flag is if RSI is below 30
       if( RSI < 30){
-         RSITru = TRUE;
+         rsiBool = TRUE;
       } 
-      if (RSITru == TRUE) {
+      if (rsiBool == TRUE) {
       // Second is if MACD crossed up 
          if ( MACDCurrent < 0 && MACDCurrent < MACDSignal) {
-            MACDTru = TRUE;
+            macdBool = TRUE;
          }
       }
        // third is if price went above MA
-      if (RSITru == TRUE && MACDTru == TRUE && (currPrice >= movingAv)){
+      if (rsiBool == TRUE && macdBool == TRUE && (currPrice >= movingAv)){
          //BUY
          ticket = OrderSend(Symbol(), OP_BUY, Lots, Ask, 2, 0, Ask+100*_Point, NULL, 0, 0, Green);
          //signal = "buy";
