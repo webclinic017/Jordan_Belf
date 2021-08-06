@@ -9,14 +9,14 @@
 #property strict
 
 input double Lots = 0.1;
-//+------------------------------------------------------------------+
-//| Expert initialization function                                   |
-//+------------------------------------------------------------------+
 
    //FLAGS
    bool maBool, macdBool, rsiBool;
    // determine other global variables
-   
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
 int OnInit(){
    //init FLAGS
    maBool = macdBool = rsiBool = False;
