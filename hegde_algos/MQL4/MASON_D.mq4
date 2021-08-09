@@ -42,8 +42,8 @@ void OnTick(){
    // what about 30 period???
    
   //MACD (Current Symbol, current timeframe, 12 fast, 26 slow
-   double MACDCurrent = iMACD(NULL, 0,12,26,9,PRICE_CLOSE,MODE_MAIN,0);
-   double MACDSignal = iMACD(NULL,0,12,26,9,PRICE_CLOSE, MODE_SIGNAL,0);
+   double currentMACD = iMACD(NULL, 0,12,26,9,PRICE_CLOSE,MODE_MAIN,0);
+   double signalMACD = iMACD(NULL,0,12,26,9,PRICE_CLOSE, MODE_SIGNAL,0);
   
   //RSI native set up
    double RSI = iRSI(NULL, 0,14,0,0);
@@ -65,7 +65,7 @@ void OnTick(){
       }
    if (RSI < 30)
       // Second is if MACD crossed up 
-      if ( MACDCurrent < 0 && MACDCurrent < MACDSignal) {
+      if ( currentMACD < 0 && (currentMACD < signalMACD)) {
          if (currPrice >= movingAv){
             //BUY
             ticket = OrderSend(Symbol(), OP_BUY, Lots, Ask, 2, 0, Ask+100*_Point, NULL, 0, 0, Green);
@@ -108,7 +108,7 @@ void OnTick(){
    //    } 
    //    if (rsiBool == TRUE) {
    //    // Second is if MACD crossed up 
-   //       if ( MACDCurrent < 0 && MACDCurrent < MACDSignal) {
+   //       if ( currentMACD < 0 && currentMACD < signalMACD) {
    //          macdBool = TRUE;
    //       }
    //    }
