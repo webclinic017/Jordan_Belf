@@ -89,7 +89,15 @@ void OnTick(){
          Print("OrderClose");
          OrderClose(OrderTicket(),OrderLots(),Bid,3,Violet);
          return; 
-      }    
+      } 
+      elif{
+         if (OrderStopLoss() < Ask - (150* _Point)){
+            //SELL
+            Print("OrderClose");
+            OrderClose(OrderTicket(),OrderLots(),Bid,3,Violet);
+            return; 
+         }    
+      }
    }
 }
 //+------------------------------------------------------------------+
