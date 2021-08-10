@@ -24,8 +24,8 @@ $cd Downloads
 
 
 # Coding Standards
-1. Camel case for local variables
-2. Constants are 
+1. Camel case for local variables `string mamosHair = "nappy";`
+2. Constants are all uppercase `int CONSTANT = 100`
 3. `if`, `else if`, `else` statements have `{}` following them unless there is one line of code following. Ex:
 ```
 if (condition)
@@ -35,3 +35,5 @@ else{
     call_function();
 }
 ```
+4. Make meaningful variable names
+5. Comment throughout code why you made things the way they are
