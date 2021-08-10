@@ -20,3 +20,16 @@ Then cd to downloads before running this code through this command
 $cd Downloads
 
 ***
+
+
+
+# Coding Standards
+1. Camel case for local variables
+2. Constants are 
+3. 'if', 'else if', 'else' statements have '{}' following them unless there is one line of code following. Ex:
+'if (condition)
+    printf("Hi");
+else{
+    printf("else");
+    call_function();
+}'
