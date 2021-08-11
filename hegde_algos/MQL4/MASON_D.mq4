@@ -81,8 +81,7 @@ void OnTick(){
             }  
          }  
       }
-   }
-   else{
+   }else{
    Print("We have an order open");
       if(RSI > 70){
       //SELL
