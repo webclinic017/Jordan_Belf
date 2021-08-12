@@ -83,43 +83,18 @@ void OnTick(){
       }
    }
    else{
-   if (OrderSelect())
    Print("We have an order open");
-      if(RSI > 70){
+      if (RSI>70){
+         Print("OrderClose");
+         OrderClose(OrderTicket(),OrderLots(),Bid,3,Violet);
+         return;
+      }
+      if((Bid*1.0005) < (OrderOpenPrice())){
       //SELL
-         Print("RSI Close");
+         Print("OrderClose");
          OrderClose(OrderTicket(),OrderLots(),Bid,3,Violet);
          return; 
-      }    
-      
-      else if (Bid < (.9*OrderOpenPrice())){
-           Print("Stop Loss");
-           OrderClose(OrderTicket(),OrderLots()<,Bid, 3, CLR_NONE);
-         }
-     
-      //else if (OrderStopLoss() < Ask - (150* _Point)){
-      //Print("Stop Loss");
-      //OrderModify(
-                //  OrderTicket(),
-                //  OrderOpenPrice(),
-               //   Ask - (150* _Point),
-               ////   OrderTakeProfit(),
-               //   0,
-               //   CLR_NONE
-              //   );
-      //OrderClose(OrderTicket(),OrderLots(),Bid,3,Violet);
-      //return; 
-    //  }
+      }
    }
 }
-
-
-
-//else(RSI > 50){
-      //(OrderStopLoss() < Ask - (150* _Point)){
-      //SELL
-         // Print("OrderClose");
-         // OrderClose(OrderTicket(),OrderLots(),Bid,3,Violet);
-         // return; 
-        // }    
 //+------------------------------------------------------------------+
