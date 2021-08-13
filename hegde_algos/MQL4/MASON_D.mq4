@@ -70,8 +70,19 @@ void OnTick(){
          rsiBool = False;
       }
       // Second is if MACD crossed up 
-      if (rsiBool == True && MACDCurrent < 0 && MACDCurrent > MACDSignal && MACDPrevious < MACDSignalPrevious && MathAbs(MACDCurrent)> 3 * Point) {
-         if (currPrice > movingAv){
+      if (MACDCurrent < 0 && MACDCurrent > MACDSignal && MACDPrevious < MACDSignalPrevious && MathAbs(MACDCurrent)> 3 * Point) {
+         macdBool = True;
+      }
+      if (MACDCurrent > 0){
+         macdBool = False;
+      }
+      if (currPrice > movingAv){
+         maBool = True;
+      }
+      if (currPrice <= movingAv){
+         maBool = False;
+      }
+      if (maBool && macdBool && rsiBool) {
             //BUY
             ticket = OrderSend(Symbol(), OP_BUY, Lots, Ask, 2, 0, Ask+10000*_Point, NULL, 0, 0, Green);
             //signal = "buy";
@@ -81,8 +92,7 @@ void OnTick(){
             }
             else
                   Print("Error opening BUY order : ",GetLastError());
-            return;
-         }  
+            return;  
       }  
    }
    else{
