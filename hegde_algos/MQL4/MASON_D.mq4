@@ -42,10 +42,10 @@ void OnTick(){
    // what about 30 period???
    
   //MACD (Current Symbol, current timeframe, 12 fast, 26 slow
-   double MACDCurrent = iMACD(NULL, 0,12,26,9,PRICE_CLOSE,MODE_MAIN,0);
-   double MACDSignal = iMACD(NULL,0,12,26,9,PRICE_CLOSE, MODE_SIGNAL,0);
-   double MACDPrevious = iMACD(NULL, 0,12,26,9,PRICE_CLOSE,MODE_MAIN,1);
-   double MACDSignalPrevious = iMACD(NULL,0,12,26,9,PRICE_CLOSE, MODE_SIGNAL,1);
+   double MacdCurrent = iMACD(NULL, 0,12,26,9,PRICE_CLOSE,MODE_MAIN,0);
+   double MacdSignal = iMACD(NULL,0,12,26,9,PRICE_CLOSE, MODE_SIGNAL,0);
+   double MacdPrevious = iMACD(NULL, 0,12,26,9,PRICE_CLOSE,MODE_MAIN,1);
+   double MacdSignalPrevious = iMACD(NULL,0,12,26,9,PRICE_CLOSE, MODE_SIGNAL,1);
   //RSI native set up
    double RSI = iRSI(NULL, 0,14,0,0);
   //Current Price
@@ -64,23 +64,36 @@ void OnTick(){
          return;
       }
       if (RSI < 30) {
-         // Second is if MACD crossed up 
-         if ( MACDCurrent < 0 && MACDCurrent > MACDSignal && MACDPrevious < MACDSignalPrevious) {
-            Print("MACD Cross Up");
-            if (currPrice >= movingAv){
-               //BUY
-               ticket = OrderSend(Symbol(), OP_BUY, Lots, Ask, 2, 0, Ask+10000*_Point, NULL, 0, 0, Green);
-               //signal = "buy";
-               if(ticket>0){
-                  if(OrderSelect(ticket,SELECT_BY_TICKET,MODE_TRADES))
-                     Print("BUY order opened : ",OrderOpenPrice());
-               }
-               else
-                     Print("Error opening BUY order : ",GetLastError());
-               return;
-            }  
-         }  
+         rsiBool = True;
       }
+      if (RSI >= 45){
+         rsiBool = False;
+      }
+      // Second is if MACD crossed up 
+      if (MACDCurrent < 0 && MACDCurrent > MACDSignal && MACDPrevious < MACDSignalPrevious && MathAbs(MACDCurrent)> 3 * Point) {
+         macdBool = True;
+      }
+      if (MACDCurrent > 0){
+         macdBool = False;
+      }
+      if (currPrice > movingAv){
+         maBool = True;
+      }
+      if (currPrice <= movingAv){
+         maBool = False;
+      }
+      if (maBool && macdBool && rsiBool) {
+            //BUY
+            ticket = OrderSend(Symbol(), OP_BUY, Lots, Ask, 2, 0, Ask+10000*_Point, NULL, 0, 0, Green);
+            //signal = "buy";
+            if(ticket>0){
+               if(OrderSelect(ticket,SELECT_BY_TICKET,MODE_TRADES))
+                  Print("BUY order opened : ",OrderOpenPrice());
+            }
+            else
+                  Print("Error opening BUY order : ",GetLastError());
+            return;  
+      }  
    }
    else{
    Print("We have an order open");
