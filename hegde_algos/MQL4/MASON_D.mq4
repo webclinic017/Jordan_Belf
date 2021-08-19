@@ -9,9 +9,10 @@
 #property strict
 
 input double Lots = 0.1;
-input double TrailingStart = 50.0;
-input double TrailingStep = 5.0;
-input double TrailingStop = 25.0;
+input double TrailingStart = 300.0;
+input double TrailingStep = 10.0;
+input double TrailingStop = 50.0;
+input double StopLossPoints = 200;
 
 //FLAGS
 bool maBool, macdBool, rsiBool;
@@ -81,10 +82,10 @@ void OnTick() {
          rsiBool = False;
       }
       // Second is if MACD crossed up
-      if (MACDCurrent < 0 && MACDCurrent > MACDSignal && MACDPrevious < MACDSignalPrevious && MathAbs(MACDCurrent) > 3 * Point) {
+      if (MacdCurrent < 0 && MacdCurrent > MacdSignal && MacdPrevious < MacdSignalPrevious && MathAbs(MacdCurrent) > 3 * Point) {
          macdBool = True;
       }
-      if (MACDCurrent > 0) {
+      if (MacdCurrent > 0) {
          macdBool = False;
       }
       if (currPrice > movingAv) {
@@ -107,7 +108,7 @@ void OnTick() {
       }
    }
    else {
-      Print("We have an order open");
+      Print("We have an order open order 300");
       /*
       // Macd Reversal Sell Conditions
       if (MacdCurrent > 0 && MacdCurrent < MacdSignal && MacdPrevious < MacdSignalPrevious && MathAbs(MacdCurrent)> 3 * Point){
@@ -126,15 +127,27 @@ void OnTick() {
       // Trailing Stop Loss
       double tStopLoss = NormalizeDouble(OrderStopLoss(), Digits);
 
-      if ( Ask > NormalizeDouble(OrderOpenPrice() + TrailingStart * _Point, Digits) && tStopLoss < NormalizeDouble(Bid - (TrailingStop + TrailingStep)* _Point, Digits) {
-         tStopLoss = NormalizeDouble(Bid - TrailingStop * vPoint, Digits);
+      if ( Ask > NormalizeDouble(OrderOpenPrice() + TrailingStart * _Point, Digits) && tStopLoss < NormalizeDouble(Bid - (TrailingStop + TrailingStep)* _Point, Digits)) {
+         tStopLoss = NormalizeDouble(Bid - TrailingStop * _Point, Digits);
          ticket = OrderModify(OrderTicket(), OrderOpenPrice(), tStopLoss, OrderTakeProfit(), 0, Blue);
          if (ticket > 0) {
-              Print (“TrailingStop #2 Activated: “, OrderSymbol(), “: SL”, tStopLoss, “: Bid”, Bid);
-              return (0);
+              Print ("TrailingStop #2 Activated: ", OrderSymbol(), ": SL", tStopLoss, ": Bid", Bid);
+              return;
          }
          return;
       }
+      //Stop Loss
+      else{
+         datetime checkTime = TimeCurrent() - 30;
+         if (OrderOpenTime() > checkTime){
+            double stopLoss = StopLossPoints*SymbolInfoDouble(OrderSymbol(), SYMBOL_POINT); 
+            double stopLossPrice = OrderOpenPrice() - stopLoss;
+            stopLossPrice = NormalizeDouble(stopLossPrice, (int)SymbolInfoInteger(OrderSymbol(), _Point));
+            Print("Stop Loss Triggered");
+            ticket = OrderModify(OrderTicket(), OrderOpenPrice(), stopLossPrice, OrderTakeProfit(), OrderExpiration());
+            return;
+         }
+      }     
    }
 }
 //+------------------------------------------------------------------+
