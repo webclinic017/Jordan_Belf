@@ -103,9 +103,9 @@ void OnTick() {
       if (maBool && macdBool && rsiBool) {
          //BUY
          //signal = "buy";
-         double lots = LotSize(AccountRisk, PipRisk, 1);
+         double lots = LotSize(AccountRisk, PipRisk, 2);
 
-         if(lots = -1){
+         if(lots == -1){
             Print("Error getting lot size");
             lots = Lots;
          }
