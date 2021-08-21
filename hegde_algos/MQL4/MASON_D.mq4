@@ -111,7 +111,8 @@ void OnTick() {
          }
          else{
             ticket = OrderSend(Symbol(), OP_BUY, lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
-         }        
+         }  
+         
          if (ticket > 0) {
             if (OrderSelect(ticket, SELECT_BY_TICKET, MODE_TRADES))
                Print("BUY order opened new : ", OrderOpenPrice());
@@ -158,7 +159,9 @@ void OnTick() {
    }
 }
 
-//----------------------------STOP LOSS FUNCTIONS-------------------------
+
+//-------------STOP LOSS FUNCTIONS------------------------------
+
 
 double StopLoss_V1(double stopLoss, int stopLevel, int ticket) {
 // Stop Loss Code for Sell Modifaction 
@@ -186,7 +189,9 @@ double StopLoss_V2(double stopLoss, double StopLossPoints){
    }
    return stopLoss;
 }
-//+------------------------------------------------------------------+
+
+
+//+-------------------------------Position Size Function--------------------------------+
 
 //Function will dynmacally size lots to trade per trade based off the total account value
 //and the amount of risk
@@ -215,22 +220,23 @@ double LotSize(double risk, double pipsAtRisk, int lotMode){
          pipLotValue = 10;
          break;
       default:
-         Print("Lot size must be 0: Micro, 1: Mini, 2: Standard")
+         Print("Lot size must be 0: Micro, 1: Mini, 2: Standard");
          return -1;
    }
    //Calculating the lots to be traded
    double pipValue = pipLotValue * Ask;
    double dollarRisk = accountVal  * risk;
-   double lotsToTrade = MathFloor((pipsAtRisk * pipValue)/dollarRisk) * lotStep);
+   double lotsToTrade = MathFloor((pipsAtRisk * pipValue)/dollarRisk) * lotStep;
    //Error Checking
    if(lotsToTrade < minLot){
       lotsToTrade = minLot;
    }
    if(lotsToTrade * lotMargin > accountFree){
-      Print("Not enough money for the trade")
+      Print("Not enough money for the trade");
       return(-1);
    }
    else{
+      Print("lotsToTrade: ", lotsToTrade);
       return(lotsToTrade);
    }
 }
