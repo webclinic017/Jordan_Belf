@@ -13,6 +13,8 @@ input double TrailingStart = 300.0;
 input double TrailingStep = 10.0;
 input double TrailingStop = 50.0;
 input double StopLossPoints = 150;
+input double AccountRisk = .01;
+input double PipRisk = 50;
 
 //FLAGS
 bool maBool, macdBool, rsiBool;
@@ -101,9 +103,15 @@ void OnTick() {
       if (maBool && macdBool && rsiBool) {
          //BUY
          //signal = "buy";
+         double lots = LotSize(AccountRisk, PipRisk, 1);
 
-         ticket = OrderSend(Symbol(), OP_BUY, Lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
-         
+         if(lots = -1){
+            Print("Error getting lot size");
+            lots = Lots;
+         }
+         else{
+            ticket = OrderSend(Symbol(), OP_BUY, lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
+         }        
          if (ticket > 0) {
             if (OrderSelect(ticket, SELECT_BY_TICKET, MODE_TRADES))
                Print("BUY order opened new : ", OrderOpenPrice());
@@ -150,6 +158,7 @@ void OnTick() {
    }
 }
 
+//----------------------------STOP LOSS FUNCTIONS-------------------------
 
 double StopLoss_V1(double stopLoss, int stopLevel, int ticket) {
 // Stop Loss Code for Sell Modifaction 
@@ -178,3 +187,50 @@ double StopLoss_V2(double stopLoss, double StopLossPoints){
    return stopLoss;
 }
 //+------------------------------------------------------------------+
+
+//Function will dynmacally size lots to trade per trade based off the total account value
+//and the amount of risk
+//Risk: Percentage of account willing to trade per trade
+//Pips At Risk: Number of pips before exiting a trade for a loss  
+//Lot Mode: Type of lots being traded; 0 = micro, 1 = mini, 2 = standard
+double LotSize(double risk, double pipsAtRisk, int lotMode){
+
+   //Initalizing Varibles for calculations
+   double accountVal = AccountBalance();
+   double accountFree = AccountFreeMargin();
+   double lotMargin = MarketInfo(Symbol(), MODE_MARGINREQUIRED);
+   double minLot = MarketInfo(Symbol(), MODE_MINLOT);
+   double lotStep = MarketInfo(Symbol(), MODE_LOTSTEP);
+   double pipLotValue = 0;
+
+   //Calculating the pipLotValue based off the 
+   switch(lotMode){
+      case 0:
+         pipLotValue = .1;
+         break;
+      case 1:
+         pipLotValue = 1;
+         break;
+      case 2:
+         pipLotValue = 10;
+         break;
+      default:
+         Print("Lot size must be 0: Micro, 1: Mini, 2: Standard")
+         return -1;
+   }
+   //Calculating the lots to be traded
+   double pipValue = pipLotValue * Ask;
+   double dollarRisk = accountVal  * risk;
+   double lotsToTrade = MathFloor((pipsAtRisk * pipValue)/dollarRisk) * lotStep);
+   //Error Checking
+   if(lotsToTrade < minLot){
+      lotsToTrade = minLot;
+   }
+   if(lotsToTrade * lotMargin > accountFree){
+      Print("Not enough money for the trade")
+      return(-1);
+   }
+   else{
+      return(lotsToTrade);
+   }
+}
