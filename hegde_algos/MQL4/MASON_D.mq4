@@ -226,7 +226,7 @@ double LotSize(double risk, double pipsAtRisk, int lotMode){
    //Calculating the lots to be traded
    double pipValue = pipLotValue * Ask;
    double dollarRisk = accountVal  * risk;
-   double lotsToTrade = MathFloor((pipsAtRisk * pipValue)/dollarRisk) * lotStep;
+   double lotsToTrade = MathFloor(dollarRisk/(pipsAtRisk * pipValue));
    //Error Checking
    if(lotsToTrade < minLot){
       lotsToTrade = minLot;
