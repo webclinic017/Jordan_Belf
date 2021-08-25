@@ -151,30 +151,32 @@ void OnTick() {
 }
 
 
-double StopLoss_V1(double stopLoss, int stopLevel, int ticket) {
+void StopLoss_V1(int ticket, double stopPoints) {
 // Stop Loss Code for Sell Modifaction 
+      double sLoss;
       datetime checkTime = TimeCurrent() - 30;
-      double stopLossPrice = 0.0;
+      double stopPrice = 0.0;
       if (OrderOpenTime() > checkTime){
-         stopLoss = StopLossPoints*SymbolInfoDouble(OrderSymbol(), SYMBOL_POINT); 
-         stopLossPrice = OrderOpenPrice() - stopLoss;
-         stopLossPrice = NormalizeDouble(stopLossPrice, (int)SymbolInfoInteger(OrderSymbol(), _Point));
+         sLoss = stopPoints*SymbolInfoDouble(OrderSymbol(), SYMBOL_POINT); 
+         stopPrice = OrderOpenPrice() - sLoss;
+         stopPrice = NormalizeDouble(stopPrice, (int)SymbolInfoInteger(OrderSymbol(), _Point));
          Print("Stop Loss Triggered in Sell");
-         ticket = OrderModify(OrderTicket(), OrderOpenPrice(), stopLossPrice, OrderTakeProfit(), OrderExpiration());
+         ticket = OrderModify(OrderTicket(), OrderOpenPrice(), stopPrice, OrderTakeProfit(), OrderExpiration());
       }
-      return stopLossPrice;
+      return;
 }
 
-double StopLoss_V2(double stopLoss, double StopLossPoints){
+double StopLoss_V2(double stopPoints){
+   double sLoss;
    // Stop Loss Code for buy modifcation
-   if(Bid - StopLossPoints < stopLevel * _Point){
-      stopLoss = Bid - StopLossPoints * _Point;
-      Print("Stop Loss set: ", stopLoss);
+   if(Bid - stopPoints < stopLevel * _Point){
+      sLoss = Bid - stopPoints * _Point;
+      Print("Stop Loss set: ", sLoss);
    }
    else {
-      stopLoss = 0;
-      Print("Stop Loss set: ", stopLoss);
+      sLoss = 0;
+      Print("Stop Loss set: ", sLoss);
    }
-   return stopLoss;
+   return sLoss;
 }
 //+------------------------------------------------------------------+
