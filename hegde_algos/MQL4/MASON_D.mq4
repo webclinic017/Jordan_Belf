@@ -11,8 +11,8 @@
 input double Lots = 0.1;
 input double TrailingStart = 300.0;
 input double TrailingStep = 10.0;
-input double TrailingStop = 50.0;
-input double StopLossPoints = 150;
+input double TrailingStop = 10.0;
+input double StopLossPoints = 200;
 
 //FLAGS
 bool maBool, macdBool, rsiBool;
@@ -101,7 +101,7 @@ void OnTick() {
       if (maBool && macdBool && rsiBool) {
          //BUY
          //signal = "buy";
-
+         stopLoss = StopLoss_V2(StopLossPoints);
          ticket = OrderSend(Symbol(), OP_BUY, Lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
          
          if (ticket > 0) {
