@@ -12,7 +12,7 @@ input double Lots = 0.1;
 input double TrailingStart = 300.0;
 input double TrailingStep = 10.0;
 input double TrailingStop = 50.0;
-input double StopLossPoints = 150;
+input double StopLossPoints = 20.0;
 input double AccountRisk = .01;
 input double PipRisk = 50;
 
@@ -54,7 +54,7 @@ void TrailingStopLoss(double Trailingstart, double Trailingstop) {
 void OnTick() {
 
 
-   int ticket = 0;
+   int ticket;
    //Moving Average (current chart symbol, current chart timeframe, 9 period, no shift, simple, close, most recent)
    double movingAv = iMA(NULL, 0, 9, 0, 0, 0, 0);
 
@@ -72,74 +72,68 @@ void OnTick() {
    //string signal = "";
 
    int total = OrdersTotal();
-
-
-   if (total < 1) {
-      
-      //No Open Orders
-      if (AccountFreeMargin() < (1000 * Lots)) {
-         Print("No funds. Free Margin = ", AccountFreeMargin());
-         return;
-      }
-      if (RSI < 30) {
-         rsiBool = True;
-      }
-      if (RSI >= 50) {
-         rsiBool = False;
-      }
-      // Second is if MACD crossed up
-      if (MacdCurrent < 0 && MacdCurrent > MacdSignal && MacdPrevious < MacdSignalPrevious && MathAbs(MacdCurrent) > 3 * Point) {
-         macdBool = True;
-      }
-      if (MacdCurrent > 0) {
-         macdBool = False;
-      }
-      if (currPrice > movingAv) {
-         maBool = True;
-      }
-      if (currPrice <= movingAv) {
-         maBool = False;
-      }
-      if (maBool && macdBool && rsiBool) {
-         //BUY
-         //signal = "buy";
-         double lots = LotSize(AccountRisk, PipRisk, 2);
-
-         if(lots == -1){
-            Print("Error getting lot size");
-            lots = Lots;
-         }
-         else{
-            ticket = OrderSend(Symbol(), OP_BUY, lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
-         }  
-         
-         if (ticket > 0) {
-            if (OrderSelect(ticket, SELECT_BY_TICKET, MODE_TRADES))
-               Print("BUY order opened new : ", OrderOpenPrice());
-         }
-         else
-            Print("Error opening BUY order : ", GetLastError());
-         return;
-      }
+   //Order Accounting section designed to check all open positions' trailing stop loss status
+  
+   if (AccountFreeMargin() < (1000 * Lots)) {
+      Print("No funds. Free Margin = ", AccountFreeMargin());
+      return;
    }
-   else {
-      Print("We have an order open order 300");
-      // Macd Reversal Sell Conditions
-      /*
-      if (MacdCurrent > 0 && MacdCurrent < MacdSignal && MacdPrevious < MacdSignalPrevious && MathAbs(MacdCurrent)> 3 * Point){
-         Print("OrderClose MACD");
-         OrderClose(OrderTicket(),OrderLots(),Bid,3,Violet);
-         return;
+   if (RSI < 30) {
+      rsiBool = True;
+      Print("RSI TRUE");
+   }
+   if (RSI >= 50) {
+      rsiBool = False;
+   }
+   // Second is if MACD crossed up
+   if (MacdCurrent < 0 && MacdCurrent > MacdSignal && MacdPrevious < MacdSignalPrevious && MathAbs(MacdCurrent) > 3 * Point) {
+      macdBool = True;
+      Print("MACD TRUE");
+   }
+   if (MacdCurrent > 0) {
+      macdBool = False;
+   }
+   if (currPrice > movingAv) {
+      maBool = True;
+      Print("MA TRUE");
+   }
+   if (currPrice <= movingAv) {
+      maBool = False;
+   }
+   if (maBool && macdBool && rsiBool) {
+      //BUY
+      //signal = "buy";
+      double lots = LotSize(AccountRisk, PipRisk, 2);
+
+      if(lots == -1){
+         Print("Error getting lot size");
+         lots = Lots;
       }
-      */
+      else{
+         //stopLoss = StopLoss_V2(StopLossPoints);
+         ticket = OrderSend(Symbol(), OP_BUY, lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
+         maBool = false;
+         macdBool = false;
+         rsiBool = false;
+      }  
       /*
-      //RSI Sell Conditions
-      else if (RSI > 70){
-         Print("OrderClose RSI");
-         OrderClose(OrderTicket(),OrderLots(),Bid,3,Violet);
-         return;
+      if (ticket > 0) {
+         if (OrderSelect(ticket, SELECT_BY_TICKET, MODE_TRADES))
+            Print("BUY order opened new : ", OrderOpenPrice());
       }
+      else
+         Print("Error opening BUY order : ", GetLastError());
       */
+      return;
+   }
+   for(int i = total-1; i >= 0; i--){
+      //Print("Total: ", total);
+      //Error checking; making Sure we can select the order
+      if(!OrderSelect(i,SELECT_BY_POS, MODE_TRADES)){
+         continue;
+      }
+      
+      //StopLoss_V1(OrderTicket(), StopLossPoints);
       // Trailing Stop Loss
       double tStopLoss = NormalizeDouble(OrderStopLoss(), Digits);
 
@@ -155,39 +149,42 @@ void OnTick() {
       //Stop Loss
       else{
          return;
-      }     
+      }  
    }
-}
+   
+}  
 
 
 //-------------STOP LOSS FUNCTIONS------------------------------
 
 
-double StopLoss_V1(double stopLoss, int stopLevel, int ticket) {
+void StopLoss_V1(int ticket, double stopPoints) {
 // Stop Loss Code for Sell Modifaction 
+      double sLoss;
       datetime checkTime = TimeCurrent() - 30;
-      double stopLossPrice = 0.0;
+      double stopPrice = 0.0;
       if (OrderOpenTime() > checkTime){
-         stopLoss = StopLossPoints*SymbolInfoDouble(OrderSymbol(), SYMBOL_POINT); 
-         stopLossPrice = OrderOpenPrice() - stopLoss;
-         stopLossPrice = NormalizeDouble(stopLossPrice, (int)SymbolInfoInteger(OrderSymbol(), _Point));
+         sLoss = stopPoints*SymbolInfoDouble(OrderSymbol(), SYMBOL_POINT); 
+         stopPrice = OrderOpenPrice() - sLoss;
+         stopPrice = NormalizeDouble(stopPrice, (int)SymbolInfoInteger(OrderSymbol(), _Point));
          Print("Stop Loss Triggered in Sell");
-         ticket = OrderModify(OrderTicket(), OrderOpenPrice(), stopLossPrice, OrderTakeProfit(), OrderExpiration());
+         ticket = OrderModify(OrderTicket(), OrderOpenPrice(), stopPrice, OrderTakeProfit(), OrderExpiration());
       }
-      return stopLossPrice;
+      return;
 }
 
-double StopLoss_V2(double stopLoss, double StopLossPoints){
+double StopLoss_V2(double stopPoints){
+   double sLoss;
    // Stop Loss Code for buy modifcation
-   if(Bid - StopLossPoints < stopLevel * _Point){
-      stopLoss = Bid - StopLossPoints * _Point;
-      Print("Stop Loss set: ", stopLoss);
+   if(Bid - stopPoints < stopLevel * _Point){
+      sLoss = Bid - stopPoints * _Point;
+      Print("Stop Loss set: ", sLoss);
    }
    else {
-      stopLoss = 0;
-      Print("Stop Loss set: ", stopLoss);
+      sLoss = 0;
+      Print("Stop Loss set: ", sLoss);
    }
-   return stopLoss;
+   return sLoss;
 }
 
 
