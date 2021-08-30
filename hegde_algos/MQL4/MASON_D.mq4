@@ -30,8 +30,6 @@ int OnInit() {
    maBool = macdBool = rsiBool = False;
    stopLevel = MarketInfo(Symbol(), MODE_STOPLEVEL);
    stopLoss = 0;
-   // TODO
-   // what else needs to be init and what other global variables?
    return (INIT_SUCCEEDED);
 }
 //+------------------------------------------------------------------+
@@ -40,13 +38,6 @@ int OnInit() {
 void OnDeinit(const int reason) {
    // TODO
 }
-
-
-
-void TrailingStopLoss(double Trailingstart, double Trailingstop) {
-   return;
-}
-
 
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |
@@ -67,9 +58,6 @@ void OnTick() {
    double RSI = iRSI(NULL, 0, 14, 0, 0);
    //Current Price
    double currPrice = iClose(NULL, 0, 0);
-
-   // ORDER
-   //string signal = "";
 
    int total = OrdersTotal();
    //Order Accounting section designed to check all open positions' trailing stop loss status
@@ -102,7 +90,6 @@ void OnTick() {
    }
    if (maBool && macdBool && rsiBool) {
       //BUY
-      //signal = "buy";
       double lots = LotSize(AccountRisk, PipRisk, 2);
 
       if(lots == -1){
@@ -110,30 +97,24 @@ void OnTick() {
          lots = Lots;
       }
       else{
-         //stopLoss = StopLoss_V2(StopLossPoints);
          ticket = OrderSend(Symbol(), OP_BUY, lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
          maBool = false;
          macdBool = false;
          rsiBool = false;
       }  
-      /*
       if (ticket > 0) {
          if (OrderSelect(ticket, SELECT_BY_TICKET, MODE_TRADES))
             Print("BUY order opened new : ", OrderOpenPrice());
       }
       else
          Print("Error opening BUY order : ", GetLastError());
-      */
       return;
    }
    for(int i = total-1; i >= 0; i--){
-      //Print("Total: ", total);
       //Error checking; making Sure we can select the order
       if(!OrderSelect(i,SELECT_BY_POS, MODE_TRADES)){
          continue;
       }
-      
-      //StopLoss_V1(OrderTicket(), StopLossPoints);
       // Trailing Stop Loss
       double tStopLoss = NormalizeDouble(OrderStopLoss(), Digits);
 
