@@ -57,8 +57,8 @@ void TrailingStopLoss(double Trailingstart, double Trailingstop) {
 void OnTick() {
 
 
-   int ticket;
-   int ticketSell;
+   int ticket = 0;
+   int ticketSell = 0;
    //Moving Average (current chart symbol, current chart timeframe, 9 period, no shift, simple, close, most recent)
    double movingAv = iMA(NULL, 0, 9, 0, 0, 0, 0);
 
@@ -157,14 +157,14 @@ void OnTick() {
       }
       else{
          //stopLoss = StopLoss_V2(StopLossPoints);
-         ticketSell = OrderSend(Symbol(), OP_SELL, lots, Bid, 2, stopLoss, NULL, NULL, 0, 0, Green);
+         ticketSell = OrderSend(Symbol(), OP_SELL, lots, Bid, 2, 1000 * _Point + Ask, NULL, NULL, 0, 0, Green);
          maSellBool = false;
          macdSellBool = false;
          rsiSellBool = false;
       }
       if (ticketSell > 0) {
          if (OrderSelect(ticketSell, SELECT_BY_TICKET, MODE_TRADES))
-            Print("BUY order opened new : ", OrderOpenPrice());
+            Print("Sell order opened new : ", OrderOpenPrice());
       }
       else {
          Print("Error opening BUY order : ", GetLastError());
@@ -173,6 +173,7 @@ void OnTick() {
    } 
 
    //Closing positions
+   RefreshRates();
    for(int i = total-1; i >= 0; i--){
       //Print("Total: ", total);
       //Error checking; making Sure we can select the order
@@ -186,25 +187,39 @@ void OnTick() {
       if(OrderType() == OP_BUY){
          if ( Ask > NormalizeDouble(OrderOpenPrice() + TrailingStart * _Point, Digits) && tStopLoss < NormalizeDouble(Bid - (TrailingStop + TrailingStep)* _Point, Digits)) {
             tStopLoss = NormalizeDouble(Bid - TrailingStop * _Point, Digits);
+            Print(tStopLoss);
             ticket = OrderModify(OrderTicket(), OrderOpenPrice(), tStopLoss, OrderTakeProfit(), 0, Blue);
             if (ticket > 0) {
-                 Print ("TrailingStop #2 Activated: ", OrderSymbol(), ": SL", tStopLoss, ": Bid", Bid);
+                 //Print ("TrailingStop #1 Activated: ", OrderSymbol(), ": SL", tStopLoss, ": Bid", Bid);
                  return;
             }
-            return;
+            //return;
          }
       }
+      if (OrderType() == OP_SELL) {
+          if ((Bid < NormalizeDouble(OrderOpenPrice() - TrailingStart * _Point, Digits) && (sl > (NormalizeDouble(Ask + (TrailingStop + TrailingStep)*_Point, Digits)))) || (OrderStopLoss() == 0)) {
+            tStopLoss = NormalizeDouble(Ask + TrailingStop * _Point, Digits);
+            Print("sl: ", tStopLoss);
+            ticketSell = OrderModify(OrderTicket(), OrderOpenPrice(), tStopLoss, OrderTakeProfit(), 0, Red);
+            if (ticketSell > 0) {
+              Print ("Trailing #2 Activated: ", OrderSymbol(), ": SL ",tStopLoss, ": Ask ", Ask);
+              return ;
+            }
+         }
+      }
+      /*
       else if(OrderType() == OP_SELL){
          if ( Bid < NormalizeDouble(OrderOpenPrice() - TrailingStart * _Point, Digits) && (sl > (NormalizeDouble(Ask + (TrailingStop + TrailingStep)* _Point, Digits))) || (OrderStopLoss() == 0){
             tStopLoss = NormalizeDouble(Ask + TrailingStop * _Point, Digits);
-            ticket = OrderModify(OrderTicket(), OrderOpenPrice(), tStopLoss, OrderTakeProfit(), 0, Red);
-            if (ticket > 0) {
+            ticketSell = OrderModify(OrderTicket(), OrderOpenPrice(), tStopLoss, OrderTakeProfit(), 0, Red);
+            if (ticketSell > 0) {
                  Print ("TrailingStop #2 Activated: ", OrderSymbol(), ": SL", tStopLoss, ": Ask", Ask);
                  return;
             }
             return;
          }
       }
+      */
       //Stop Loss
       else{
          return;
