@@ -1,13 +1,26 @@
-import smtplib
+import emails
 
-s = smtplib.SMTP()
+# Prepare the email
+message = emails.html(
+    html="<h1>This month's top picks</h1><strong>AAPL, MAC, AMD, NVDA</strong>",
+    subject="HOTLIST",
+    mail_from="jordanbelf2021@gmail.com",
+)
 
-s.connect('email-smtp.us-east-2.amazonaws.com', 465)
+# Send the email
+r = message.send(
+    to="mhmccoy2017@gmail.com", 
+    smtp={
+        "host": "email-smtp.us-east-2.amazonaws.com", 
+        "port": 587, 
+        "timeout": 5,
+        "user": "AKIA4STHFKDGBZY3YBOV",
+        "password": "BP4RNOGRipdzOSIj0xNgiDKD2oNe6rqqIExN57fyF8td",
+        "tls": True,
+    },
+)
 
-s.starttls()
+# Check if the email was properly sent
+assert r.status_code == 250  
 
-s.login('AKIA4STHFKDGBZY3YBOV', 'BP4RNOGRipdzOSIj0xNgiDKD2oNe6rqqIExN57fyF8td')
-
-msg= 'From: jordanbelf2021@gmail.com\nTo: mhmccoy2017@gmail.com\nSubject: Test\n\n  This is a test'
-
-s.sendmail('jordanbelf2021@gmail.com', 'mhmccoy2017@gmail.com', msg)
+print(r.status_code)
