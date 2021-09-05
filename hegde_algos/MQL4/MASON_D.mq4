@@ -20,6 +20,7 @@ input double PipRisk = 50;
 bool maBool, macdBool, rsiBool;
 int stopLevel;
 double stopLoss;
+datetime currentBuyTime;
 // determine other global variables
 
 //+------------------------------------------------------------------+
@@ -30,6 +31,7 @@ int OnInit() {
    maBool = macdBool = rsiBool = False;
    stopLevel = MarketInfo(Symbol(), MODE_STOPLEVEL);
    stopLoss = 0;
+   currentBuyTime = TimeCurrent();
    return (INIT_SUCCEEDED);
 }
 //+------------------------------------------------------------------+
@@ -61,54 +63,53 @@ void OnTick() {
 
    int total = OrdersTotal();
    //Order Accounting section designed to check all open positions' trailing stop loss status
-  
    if (AccountFreeMargin() < (1000 * Lots)) {
       Print("No funds. Free Margin = ", AccountFreeMargin());
       return;
    }
-   if (RSI < 30) {
-      rsiBool = True;
-      Print("RSI TRUE");
-   }
-   if (RSI >= 50) {
-      rsiBool = False;
-   }
-   // Second is if MACD crossed up
-   if (MacdCurrent < 0 && MacdCurrent > MacdSignal && MacdPrevious < MacdSignalPrevious && MathAbs(MacdCurrent) > 3 * Point) {
-      macdBool = True;
-      Print("MACD TRUE");
-   }
-   if (MacdCurrent > 0) {
-      macdBool = False;
-   }
-   if (currPrice > movingAv) {
-      maBool = True;
-      Print("MA TRUE");
-   }
-   if (currPrice <= movingAv) {
-      maBool = False;
-   }
-   if (maBool && macdBool && rsiBool) {
-      //BUY
-      double lots = LotSize(AccountRisk, PipRisk, 2);
-
-      if(lots == -1){
-         Print("Error getting lot size");
-         lots = Lots;
+   if (TimeCurrent() > currentBuyTime + 900){
+      if (RSI < 30) {
+         rsiBool = True;
       }
-      else{
-         ticket = OrderSend(Symbol(), OP_BUY, lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
-         maBool = false;
-         macdBool = false;
-         rsiBool = false;
-      }  
-      if (ticket > 0) {
-         if (OrderSelect(ticket, SELECT_BY_TICKET, MODE_TRADES))
-            Print("BUY order opened new : ", OrderOpenPrice());
+      if (RSI >= 50) {
+         rsiBool = False;
       }
-      else
-         Print("Error opening BUY order : ", GetLastError());
-      return;
+      // Second is if MACD crossed up
+      if (MacdCurrent < 0 && MacdCurrent > MacdSignal && MacdPrevious < MacdSignalPrevious && MathAbs(MacdCurrent) > 3 * Point) {
+         macdBool = True;
+      }
+      if (MacdCurrent > 0) {
+         macdBool = False;
+      }
+      if (currPrice > movingAv) {
+         maBool = True;
+      }
+      if (currPrice <= movingAv) {
+         maBool = False;
+      }
+      if (maBool && macdBool && rsiBool) {
+         //BUY
+         double lots = LotSize(AccountRisk, PipRisk, 2);
+         currentBuyTime = TimeCurrent();
+      
+         if(lots == -1){
+            Print("Error getting lot size");
+            lots = Lots;
+         }
+         else{
+            ticket = OrderSend(Symbol(), OP_BUY, lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
+            maBool = false;
+            macdBool = false;
+            rsiBool = false;
+         }  
+         if (ticket > 0) {
+            if (OrderSelect(ticket, SELECT_BY_TICKET, MODE_TRADES))
+               Print("BUY order opened new : ", OrderOpenPrice());
+         }
+         else
+            Print("Error opening BUY order : ", GetLastError());
+         return;
+      }
    }
    for(int i = total-1; i >= 0; i--){
       //Error checking; making Sure we can select the order
