@@ -67,6 +67,7 @@ void OnTick() {
       Print("No funds. Free Margin = ", AccountFreeMargin());
       return;
    }
+   Print(currPrice);
    if (TimeCurrent() > currentBuyTime + 900){
       if (RSI < 30) {
          rsiBool = True;
