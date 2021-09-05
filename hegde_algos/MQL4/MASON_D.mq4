@@ -20,6 +20,7 @@ input double PipRisk = 50;
 bool maBool, macdBool, rsiBool, maSellBool, macdSellBool, rsiSellBool;
 int stopLevel;
 double stopLoss;
+datetime currentBuyTime;
 // determine other global variables
 
 //+------------------------------------------------------------------+
@@ -33,6 +34,7 @@ int OnInit() {
    maSellBool = macdSellBool = rsiBool = False;
    stopLevel = MarketInfo(Symbol(), MODE_STOPLEVEL);
    stopLoss = 0;
+   currentBuyTime = TimeCurrent();
    // TODO
    // what else needs to be init and what other global variables?
    return (INIT_SUCCEEDED);
@@ -82,96 +84,97 @@ void OnTick() {
       Print("No funds. Free Margin = ", AccountFreeMargin());
       return;
    }
+   if (TimeCurrent() > currentBuyTime + 1800){
    //RSI Check
-   if (RSI < 30) {
-      rsiBool = True;
-   }
-   //RSI Reset
-   if (RSI >= 50) {
-      rsiBool = False;
-   }
-   // Second is if MACD crossed up
-   if (MacdCurrent < 0 && MacdCurrent > MacdSignal && MacdPrevious < MacdSignalPrevious && MathAbs(MacdCurrent) > 3 * Point) {
-      macdBool = True;
-   }
-   if (MacdCurrent > 0) {
-      macdBool = False;
-   }
-   if (currPrice > movingAv) {
-      maBool = True;
-   }
-   if (currPrice <= movingAv) {
-      maBool = False;
-   }
-   if (maBool && macdBool && rsiBool) {
- 
-      double lots = LotSize(AccountRisk, PipRisk, 2);
+      if (RSI < 30) {
+         rsiBool = True;
+      }
+      //RSI Reset
+      if (RSI >= 50) {
+         rsiBool = False;
+      }
+      // Second is if MACD crossed up
+      if (MacdCurrent < 0 && MacdCurrent > MacdSignal && MacdPrevious < MacdSignalPrevious && MathAbs(MacdCurrent) > 3 * Point) {
+         macdBool = True;
+      }
+      if (MacdCurrent > 0) {
+         macdBool = False;
+      }
+      if (currPrice > movingAv) {
+         maBool = True;
+      }
+      if (currPrice <= movingAv) {
+         maBool = False;
+      }
+      if (maBool && macdBool && rsiBool) {
+    
+         double lots = LotSize(AccountRisk, PipRisk, 2);
+         currentBuyTime = TimeCurrent();
+         if(lots == -1){
+            Print("Error getting lot size");
+            lots = Lots;
+         }
+         else{
+            //stopLoss = StopLoss_V2(StopLossPoints);
+            ticket = OrderSend(Symbol(), OP_BUY, lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
+            maBool = false;
+            macdBool = false;
+            rsiBool = false;
+         }  
+         if (ticket > 0) {
+            if (OrderSelect(ticket, SELECT_BY_TICKET, MODE_TRADES))
+               Print("BUY order opened new : ", OrderOpenPrice());
+         }
+         else {
+            Print("Error opening BUY order : ", GetLastError());
+         }
+         return;
+      }
 
-      if(lots == -1){
-         Print("Error getting lot size");
-         lots = Lots;
+      //Checking Opening Sell Conditions
+      if(RSI > 70){
+         rsiSellBool = true;
       }
-      else{
-         //stopLoss = StopLoss_V2(StopLossPoints);
-         ticket = OrderSend(Symbol(), OP_BUY, lots, Ask, 2, stopLoss, NULL, NULL, 0, 0, Green);
-         maBool = false;
-         macdBool = false;
-         rsiBool = false;
-      }  
-      if (ticket > 0) {
-         if (OrderSelect(ticket, SELECT_BY_TICKET, MODE_TRADES))
-            Print("BUY order opened new : ", OrderOpenPrice());
-      }
-      else {
-         Print("Error opening BUY order : ", GetLastError());
-      }
-      return;
-   }
-
-   //Checking Opening Sell Conditions
-   if(RSI > 70){
-      rsiSellBool = true;
-   }
-   if(RSI <= 50){
-      rsiSellBool = false;
-   }
-   if(MacdCurrent > 0 && MacdCurrent < MacdSignal && MacdPrevious > MacdSignalPrevious && MathAbs(MacdCurrent) > 3 * Point) {
-      macdSellBool = True;
-   }
-   if(MacdCurrent < 0) {
-      macdSellBool = False;
-   }
-   if(currPrice < movingAv) {
-      maSellBool = True;
-   }
-   if(currPrice >= movingAv) {
-      maSellBool = False;
-   }
-   if(rsiSellBool && macdSellBool && maSellBool){
-      
-      double lots = LotSize(AccountRisk, PipRisk, 2);
-
-      if(lots == -1){
-         Print("Error getting lot size");
-         lots = Lots;
-      }
-      else{
-         //stopLoss = StopLoss_V2(StopLossPoints);
-         ticketSell = OrderSend(Symbol(), OP_SELL, lots, Bid, 2, 1000 * _Point + Ask, NULL, NULL, 0, 0, Green);
-         maSellBool = false;
-         macdSellBool = false;
+      if(RSI <= 50){
          rsiSellBool = false;
       }
-      if (ticketSell > 0) {
-         if (OrderSelect(ticketSell, SELECT_BY_TICKET, MODE_TRADES))
-            Print("Sell order opened new : ", OrderOpenPrice());
+      if(MacdCurrent > 0 && MacdCurrent < MacdSignal && MacdPrevious > MacdSignalPrevious && MathAbs(MacdCurrent) > 3 * Point) {
+         macdSellBool = True;
       }
-      else {
-         Print("Error opening BUY order : ", GetLastError());
+      if(MacdCurrent < 0) {
+         macdSellBool = False;
       }
-      return;
-   } 
-
+      if(currPrice < movingAv) {
+         maSellBool = True;
+      }
+      if(currPrice >= movingAv) {
+         maSellBool = False;
+      }
+      if(rsiSellBool && macdSellBool && maSellBool){
+         
+         double lots = LotSize(AccountRisk, PipRisk, 2);
+         currentBuyTime = TimeCurrent();
+         if(lots == -1){
+            Print("Error getting lot size");
+            lots = Lots;
+         }
+         else{
+            //stopLoss = StopLoss_V2(StopLossPoints);
+            ticketSell = OrderSend(Symbol(), OP_SELL, lots, Bid, 2, 1000 * _Point + Ask, NULL, NULL, 0, 0, Green);
+            maSellBool = false;
+            macdSellBool = false;
+            rsiSellBool = false;
+         }
+         if (ticketSell > 0) {
+            if (OrderSelect(ticketSell, SELECT_BY_TICKET, MODE_TRADES))
+               Print("Sell order opened new : ", OrderOpenPrice());
+         }
+         else {
+            Print("Error opening BUY order : ", GetLastError());
+         }
+         return;
+      } 
+   }
    //Closing positions
    RefreshRates();
    for(int i = total-1; i >= 0; i--){
