@@ -13,6 +13,8 @@ shares = yahoo_financials.get_key_statistics_data()
 
 ######REVENUE######################
 #R0 is most recent reporting, R4 is oldest reporting
+#for i in income:
+  #r[i] = i['incomeStatementHistory'][ticker][i]['totalRevenue']
 
 #R0 = income['incomeStatementHistory']['AAPL'][0]['2020-09-26']['totalRevenue']
 #R1 = income['incomeStatementHistory']['AAPL'][1]['2019-09-28']['totalRevenue']
